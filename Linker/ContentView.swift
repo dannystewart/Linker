@@ -141,6 +141,35 @@ struct ContentView: View {
             do {
                 let symlinkURL = destinationURL.appendingPathComponent(self.linkName)
 
+                // If an item already exists at the destination, only allow replacing if it's a symlink.
+                let symlinkPath = symlinkURL.path(percentEncoded: false)
+                if FileManager.default.fileExists(atPath: symlinkPath) {
+                    let attributes = try FileManager.default.attributesOfItem(atPath: symlinkPath)
+                    let isSymlink = (attributes[.type] as? FileAttributeType) == .typeSymbolicLink
+
+                    guard isSymlink else {
+                        await MainActor.run {
+                            self.isCreatingLink = false
+                            let alert = NSAlert()
+                            alert.messageText = "Item Already Exists"
+                            alert.informativeText = "A file or folder named “\(self.linkName)” already exists in the destination. Choose a different name, or remove the existing item."
+                            alert.alertStyle = .warning
+                            alert.runModal()
+                        }
+                        return
+                    }
+
+                    let shouldReplace = await MainActor.run {
+                        self.confirmReplaceExistingSymlink(at: symlinkURL)
+                    }
+                    guard shouldReplace else {
+                        await MainActor.run { self.isCreatingLink = false }
+                        return
+                    }
+
+                    _ = try FileManager.default.trashItem(at: symlinkURL, resultingItemURL: nil)
+                }
+
                 // Create the symbolic link
                 try FileManager.default.createSymbolicLink(
                     at: symlinkURL,
@@ -174,6 +203,19 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    @MainActor
+    private func confirmReplaceExistingSymlink(at url: URL) -> Bool {
+        // UI prompt must run on the main thread.
+        let alert = NSAlert()
+        alert.messageText = "Replace Existing Symlink?"
+        alert.informativeText = "A symlink named “\(self.linkName)” already exists at:\n\n\(url.path(percentEncoded: false))\n\nIf you choose Replace, the existing symlink will be moved to the Trash."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Replace")
+        alert.addButton(withTitle: "Cancel")
+
+        return alert.runModal() == .alertFirstButtonReturn
     }
 }
 
