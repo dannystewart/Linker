@@ -4,11 +4,18 @@ import UniformTypeIdentifiers
 // MARK: - ContentView
 
 struct ContentView: View {
+    enum DropZoneType {
+        case source
+        case destination
+    }
+
+    @Namespace private var focusNamespace
     @State private var sourceURL: URL?
     @State private var destinationURL: URL?
     @State private var linkName: String = ""
     @State private var showSuccess: Bool = false
     @State private var isCreatingLink: Bool = false
+    @FocusState private var focusedZone: DropZoneType?
 
     var body: some View {
         VStack(spacing: 24) {
@@ -19,7 +26,19 @@ struct ContentView: View {
                     subtitle: "Drag file or folder here",
                     url: self.$sourceURL,
                     systemImage: "doc.on.doc",
+                    isFocused: self.focusedZone == .source,
                 )
+                .focusable()
+                .focused(self.$focusedZone, equals: .source)
+                .focusEffectDisabled()
+                .onKeyPress(.delete) {
+                    if self.focusedZone == .source {
+                        self.sourceURL = nil
+                        self.linkName = ""
+                        return .handled
+                    }
+                    return .ignored
+                }
 
                 DropZone(
                     title: "Destination",
@@ -27,7 +46,18 @@ struct ContentView: View {
                     url: self.$destinationURL,
                     systemImage: "folder",
                     acceptsOnlyFolders: true,
+                    isFocused: self.focusedZone == .destination,
                 )
+                .focusable()
+                .focused(self.$focusedZone, equals: .destination)
+                .focusEffectDisabled()
+                .onKeyPress(.delete) {
+                    if self.focusedZone == .destination {
+                        self.destinationURL = nil
+                        return .handled
+                    }
+                    return .ignored
+                }
             }
             .frame(height: 160)
 
@@ -42,32 +72,61 @@ struct ContentView: View {
                     .disabled(self.sourceURL == nil)
             }
 
-            // Save Button
-            Button(action: self.createSymlink) {
-                HStack {
-                    if self.isCreatingLink {
-                        ProgressView()
-                            .controlSize(.small)
-                    } else if self.showSuccess {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                    } else {
-                        Text("Create Symlink")
+            // Buttons
+            HStack(spacing: 12) {
+                Button(action: self.createSymlink) {
+                    HStack {
+                        if self.isCreatingLink {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else if self.showSuccess {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                                .controlSize(.large)
+                        } else {
+                            Text("Create Symlink")
+                        }
                     }
+                    .frame(width: 400, height: 36)
                 }
-                .frame(maxWidth: .infinity)
-                .frame(height: 32)
+                .buttonStyle(.borderedProminent)
+                .disabled(self.sourceURL == nil || self.destinationURL == nil || self.linkName.isEmpty || self.isCreatingLink)
+
+                Button(action: self.clearAll) {
+                    Text("Clear")
+                        .frame(width: 100, height: 36)
+                }
+                .buttonStyle(.bordered)
+                .disabled(self.sourceURL == nil && self.destinationURL == nil && self.linkName.isEmpty && self.focusedZone == nil)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(self.sourceURL == nil || self.destinationURL == nil || self.linkName.isEmpty || self.isCreatingLink)
+            .frame(maxWidth: .infinity)
         }
         .padding(32)
         .frame(width: 600)
+        .focusScope(self.focusNamespace)
+        .overlay(alignment: .topLeading) {
+            // Prevent macOS from auto-focusing the first focusable child (Source) on launch,
+            // which causes a one-frame "blue flash". This invisible view absorbs default focus.
+            Color.clear
+                .frame(width: 1, height: 1)
+                .focusable()
+                .focusEffectDisabled()
+                .prefersDefaultFocus(in: self.focusNamespace)
+                .accessibilityHidden(true)
+        }
         .onChange(of: self.sourceURL) { oldValue, newValue in
             if let newValue, linkName.isEmpty || oldValue != nil {
                 self.linkName = newValue.lastPathComponent
             }
         }
+    }
+
+    private func clearAll() {
+        self.sourceURL = nil
+        self.destinationURL = nil
+        self.linkName = ""
+        self.showSuccess = false
+        self.focusedZone = nil
     }
 
     private func createSymlink() {
@@ -126,6 +185,7 @@ struct DropZone: View {
     @Binding var url: URL?
     let systemImage: String
     var acceptsOnlyFolders: Bool = false
+    var isFocused: Bool = false
 
     @State private var isTargeted: Bool = false
 
@@ -164,7 +224,7 @@ struct DropZone: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .strokeBorder(
-                            self.isTargeted ? Color.accentColor : Color.secondary.opacity(0.3),
+                            self.isTargeted || self.isFocused ? Color.accentColor : Color.secondary.opacity(0.3),
                             style: StrokeStyle(lineWidth: 2, dash: [8, 4]),
                         ),
                 ),
