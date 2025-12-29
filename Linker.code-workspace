@@ -1,0 +1,58 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.detectIndentation": false,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "explorerExclude.backup": {},
+    "files.exclude": {
+      "**/.git": true,
+      "**/.svn": false,
+      "**/.hg": false,
+      "**/.DS_Store": true,
+      "**/Thumbs.db": true,
+      "**/flutter/ephemeral": true,
+      "**/Flutter/ephemeral": true,
+      "**/.symlinks": true,
+      "**/.plugin_symlinks": true,
+      "**/.pytest_cache": true,
+      "**/.vscode": true,
+      "**/__pycache__": true,
+      "**/CVS": false,
+      "**/node_modules": true,
+      ".history": true,
+      "env*": true,
+      "venv": true,
+      ".build": true,
+      ".claude": true,
+      ".cursor": true,
+      ".cursorindexingignore": true,
+      ".github": true,
+      ".pre-commit-config.yaml": true,
+      ".specstory": true,
+      ".swiftpm": true,
+      "*.code-workspace": true,
+      "*.icon": true,
+      "*.sh": true,
+      "**/.windsurf": true,
+      "**/*.xcodeproj": true,
+      "**/Assets.xcassets": true,
+      "**/Generated": true,
+      "build": true,
+      "Build": true,
+      "Index.noindex": true,
+      "ci_scripts": true,
+      "Package.resolved": true,
+      "WARP.md": true
+    },
+    "swift.autoGenerateLaunchConfigurations": false,
+    "swift.backgroundCompilation": false,
+    "swift.buildPath": "./.build",
+    "swift.showBuildStatus": "never",
+    "swift.swiftEnvironmentVariables": {}
+  }
+}

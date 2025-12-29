@@ -1,0 +1,24 @@
+disabled_rules:
+  # Disabled with reason
+  - line_length # too strict
+  - type_name # needed for "macOS" and "iOS"
+  - identifier_name # needed for database column names
+  - opening_brace # conflicts with swiftformat
+  - closing_brace # conflicts with swiftformat
+  - leading_whitespace # conflicts with swiftformat
+  - trailing_whitespace # conflicts with swiftformat
+  - trailing_comma # conflicts with swiftformat
+  - todo # not all todos can be done today
+  #
+  # Enable when possible
+  - file_length
+  - function_parameter_count
+  - type_body_length
+  - function_body_length
+  - cyclomatic_complexity
+
+included:
+  - PolyPaste
+
+strict: true
+check_for_updates: true

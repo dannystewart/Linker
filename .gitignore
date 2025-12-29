@@ -1,0 +1,23 @@
+# Build artifacts
+.build/
+build/
+releases/
+DerivedData/
+
+# Swift package files
+.swiftpm/
+*.xcodeproj/xcuserdata/
+*.xcuserdata/
+*.xcworkspace/xcuserdata/
+**/UserInterfaceState.xcuserstate
+Packages/
+
+# Local development
+.claude/
+.cursor/rules/
+.cursorindexingignore
+.DS_Store
+.env
+.specstory/
+*.tmp
+Config/Secrets.xcconfig
